@@ -5,7 +5,7 @@ import shutil
 import sys
 import urllib.request
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from email.utils import parsedate_to_datetime
 from html import escape
 from html.parser import HTMLParser
@@ -24,7 +24,7 @@ class PlainText(HTMLParser):
 
 def plain(value):
     parser = PlainText(); parser.feed(value or '')
-    return ' '.join(' '.join(parser.parts).split())
+    return ' '.join(' '.join(parser.parts).replace('\u2060', '').replace('\u200b', '').replace('\ufeff', '').split())
 
 def safe_url(value):
     try:
@@ -50,7 +50,7 @@ def parse_feed(data):
         except (TypeError, ValueError, OverflowError):
             date = datetime.min.replace(tzinfo=timezone.utc)
         image = item.find('itunes:image', NS)
-        items.append({'title': title, 'description': plain(item.findtext('description') or item.findtext('content:encoded', namespaces=NS))[:500],
+        items.append({'title': title, 'description': plain(item.findtext('description') or item.findtext('content:encoded', namespaces=NS)).split('▷▶︎私たちについて')[0][:300],
                       'link': safe_url(item.findtext('link')) or SHOW,
                       'image': safe_url(image.get('href')) if image is not None else '',
                       'number': plain(item.findtext('itunes:episode', namespaces=NS)), 'date': date})
@@ -59,7 +59,7 @@ def parse_feed(data):
 
 def card(item):
     e = escape
-    stamp = item['date'].strftime('%Y.%m.%d') if item['date'].year > 1 else 'ENKARE!'
+    stamp = item['date'].astimezone(timezone(timedelta(hours=9))).strftime('%Y.%m.%d') if item['date'].year > 1 else 'ENKARE!'
     art = (f'<img src="{e(item["image"], quote=True)}" alt="" loading="lazy" style="width:100%;aspect-ratio:1;object-fit:contain">' if item['image'] else
            f'<span>ENKARE! / EPISODE</span><strong>{e("#"+item["number"] if item["number"] else "♪")}</strong>')
     label = 'Spotifyの番組一覧へ' if item['link'] == SHOW else ('Spotifyで聴く' if urlsplit(item['link']).hostname == 'open.spotify.com' else '配信ページで聴く')
@@ -78,7 +78,7 @@ def build(source, output, data):
     pages['episodes.html'], count = re.subn(r'<section class="section episode-list">.*?</section>', lambda _: section, pages['episodes.html'], count=1, flags=re.S)
     if count != 1: raise ValueError('Episode section not found')
     latest = '<section class="section"><span class="eyebrow">LATEST EPISODE / 最新の配信</span>'+card(items[0])+'<a class="button blue" href="episodes.html">エピソード一覧へ →</a></section>'
-    pages['enkare.html'] = pages['enkare.html'].replace('</main>', latest+'</main>', 1)
+    pages['enkare.html'] = pages['enkare.html'].replace('</section>', '</section>'+latest, 1)
     output.mkdir(parents=True)
     for file in source.iterdir():
         if file.is_file() and file.suffix.lower() in ('.html','.css','.js','.jpg','.png','.mp4','.svg','.ico','.webp'):
@@ -94,3 +94,5 @@ if __name__ == '__main__':
         data = response.read(10_000_001)
     if len(data) > 10_000_000: sys.exit('RSS feed exceeds 10MB')
     build(sys.argv[1] if len(sys.argv)>1 else '.', sys.argv[2] if len(sys.argv)>2 else '../site-build', data)
+
+
