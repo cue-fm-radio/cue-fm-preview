@@ -1,0 +1,14 @@
+/* Clear body text, softly rounded display headings. */
+:root{--font-body:"Noto Sans JP","Hiragino Kaku Gothic ProN",Meiryo,sans-serif;--font-display:"M PLUS Rounded 1c","Noto Sans JP",sans-serif}
+body{font-family:var(--font-body);font-weight:400;line-height:1.9}
+h1,h2,h3,.brand,.footer-logo,.portal-wordmark,.tape-label strong{font-family:var(--font-display);font-weight:800;letter-spacing:.02em}
+.hand{font-family:var(--font-body);font-weight:500;letter-spacing:.03em}
+.brand small,.footer-logo span{font-family:var(--font-body);font-weight:500}
+nav,.button,.door-cta{font-family:var(--font-body);font-weight:700}
+.eyebrow,.door-top,.steps span{font-weight:700}
+.portal-intro p,.door-copy p,.episode-copy p,.program-story p,.history,.maintenance p,.general-contact p{font-size:15px;line-height:1.95}
+.portal-intro h1{line-height:1.65}
+.door-copy h2{font-weight:800}
+.episode-copy h2{font-family:var(--font-body);font-weight:700;line-height:1.65;letter-spacing:0}
+.portal-intro>.hand,.portal-bottom{font-weight:500}
+@media(max-width:700px){.portal-intro p,.door-copy p,.episode-copy p,.program-story p,.history,.maintenance p,.general-contact p{font-size:14px}.portal-intro h1{font-size:clamp(21px,6.2vw,28px)}header nav{font-size:12px}.door-art .hand{font-size:12px;letter-spacing:0}}
